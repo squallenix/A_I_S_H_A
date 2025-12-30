@@ -25,4 +25,7 @@ IMAGE_PATHS = {
     "add": os.path.join(BASE_DIR, "add.png"),
     "back": os.path.join(BASE_DIR, "back.png"),
     "enter": os.path.join(BASE_DIR, "enter.png"),
+    "record": os.path.join(BASE_DIR, "record.jpg"),
+    "stop": os.path.join(BASE_DIR, "stop.png"),
+
 }

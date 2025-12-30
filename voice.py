@@ -1,18 +1,24 @@
 import threading
-from paths import IMAGE_PATHS
 import numpy as np
 import speech_recognition as sr
 from paths import IMAGE_PATHS
 from tkinter import *
-from PIL import Image,ImageTk
+from PIL import Image
 from customtkinter import *
 import customtkinter as ctk
-from tkinter import *
 import pyaudio
 
-class Voice(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+class Voice(ctk.CTkFrame):
+    def __init__(self,parent,controller):
+        super().__init__(parent)
+        IMAGES = {
+            "record": ctk.CTkImage(Image.open(IMAGE_PATHS["record"]), size=(35, 35)),
+            "stop": ctk.CTkImage(Image.open(IMAGE_PATHS["stop"]), size=(30, 29)),
+            "back": ctk.CTkImage(Image.open(IMAGE_PATHS["back"]), size=(30, 29)),
+        }
+        record=IMAGES["record"]
+        stop=IMAGES["stop"]
+        back=IMAGES["back"]
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         self.recording = False
@@ -23,7 +29,7 @@ class Voice(ctk.CTk):
         self.p = pyaudio.PyAudio()
 
 
-        self.geometry("800x500")
+        #self.geometry("800x500")
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.chatFrame = ctk.CTkFrame(self, fg_color="gray20",corner_radius=0)
@@ -35,12 +41,17 @@ class Voice(ctk.CTk):
         self.chatFrame.grid_columnconfigure(0, weight=1)
         self.chatFrame.grid_columnconfigure(1, weight=1)
         self.chatFrame.grid_columnconfigure(2, weight=1)
+
         self.label=ctk.CTkLabel(self.chatFrame, text="Voice Recognition Demo", font=ctk.CTkFont(size=20, weight="bold"))
         self.label.grid(row=0,column=0, pady=10,padx=10, columnspan=3)
-        self.button1=ctk.CTkButton(self.chatFrame, text="Start Listening", command=self.start)
+
+        self.button1=ctk.CTkButton(self.chatFrame,image=record, text="Start Listening", command=self.start, corner_radius=0, fg_color="gray20",hover_color="gray30")
         self.button1.grid(row=1,column=0,stick="w",padx=10,pady=0)
-        self.button2=ctk.CTkButton(self.chatFrame, text="Stop Listening", command=self.stop)
+        self.button2=ctk.CTkButton(self.chatFrame,image=stop, text="Stop Listening", command=self.stop, corner_radius=0, fg_color="gray20",hover_color="gray30")
         self.button2.grid(row=1,column=2,stick="w",padx=10,pady=0)
+        self.back_button = ctk.CTkButton(
+        self.chatFrame, image= back, text="", corner_radius=0, fg_color="gray20",hover_color="gray30",width=50,height=30,command=lambda: controller.show_frame("Menu"))
+        self.back_button.grid(row=0, column=2, sticky="ne",padx=10,pady=10)
 
         self.textfield=ctk.CTkTextbox(self.chatFrame, width=600, height=400)
         self.textfield.grid(row=2,column=0,sticky="nsew",columnspan=3, padx=50, pady=20)
@@ -172,6 +183,6 @@ class Voice(ctk.CTk):
 
 
 
-app = Voice()
-app.mainloop()
+#app = Voice()
+#app.mainloop()
 

@@ -33,7 +33,7 @@ class Menu(CTkFrame):
 
         
         button1 = CTkButton(sidebar, text="Chat_Box",command=lambda: controller.show_frame("Chatbox"), **button_opts)
-        button2 = CTkButton(sidebar, text="AI Assistance",command=lambda: controller.show_frame(""), **button_opts)
+        button2 = CTkButton(sidebar, text="Voice Assistance",command=lambda: controller.show_frame("Voice"), **button_opts)
 
         sidebar.grid_rowconfigure((0,1,2), weight=1)
         button1.grid(row=0, column=0, pady=10)

@@ -4,6 +4,7 @@ from customtkinter import *
 from login import Login
 from chatbox import Chatbox
 from menu import Menu
+from voice import Voice
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -19,7 +20,7 @@ class MainApp(ctk.CTk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (Login,Chatbox,Menu):
+        for F in (Login,Chatbox,Menu,Voice):
             page_name = F.__name__
             frame = F(container, self)
             self.frames[page_name] = frame
@@ -31,8 +32,9 @@ class MainApp(ctk.CTk):
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
-        if page_name == "Menu":
+        if page_name == "Menu" or page_name == "Voice" or page_name == "Chatbox":
             self.geometry("800x500+0+0")
+        
         else:
             self.geometry("1350x700+0+0")
 
