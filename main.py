@@ -5,12 +5,13 @@ from login import Login
 from chatbox import Chatbox
 from menu import Menu
 from voice import Voice
+from signup import Signup
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Login System")
-        self.geometry("1350x700+0+0")
+        self.title("Advanced Intelligent Special Home Assistant - A.I.S.H.A")
+        
         self.configure(bg="white")
 
         # container that holds all frames (pages)
@@ -19,8 +20,9 @@ class MainApp(ctk.CTk):
 
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
+        
         self.frames = {}
-        for F in (Login,Chatbox,Menu,Voice):
+        for F in (Login,Chatbox,Menu,Voice,Signup):
             page_name = F.__name__
             frame = F(container, self)
             self.frames[page_name] = frame
@@ -34,14 +36,13 @@ class MainApp(ctk.CTk):
         frame.tkraise()
         if page_name == "Menu" or page_name == "Voice" or page_name == "Chatbox":
             self.geometry("800x500+0+0")
-        
         else:
-            self.geometry("1350x700+0+0")
-
+            self.geometry("1350x670+0+0")
 
  
 
 
 if __name__ == "__main__":
     app = MainApp()
+    app.resizable(False, False)
     app.mainloop()
