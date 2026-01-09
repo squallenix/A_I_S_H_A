@@ -1,5 +1,6 @@
 import threading
 import customtkinter as ctk
+import numpy as np
 from paths import IMAGE_PATHS
 from PIL import Image
 from ollama import chat
