@@ -36,7 +36,7 @@ class Chatbox(ctk.CTkFrame):
         self.running = False
         self.stream = None
         self.p = pyaudio.PyAudio()
-
+        self.waveform_running = False
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=0)
@@ -46,7 +46,7 @@ class Chatbox(ctk.CTkFrame):
         self.chatFrame.grid(row=0, column=0,rowspan=2,columnspan=3, sticky="nsew")
         self.chatFrame.grid_rowconfigure(0, weight=0)
         self.chatFrame.grid_rowconfigure(1, weight=1)
-
+        self.chatFrame.grid_rowconfigure(2, weight=1)
         self.chatFrame.grid_columnconfigure(0, weight=0)
         self.chatFrame.grid_columnconfigure(1, weight=1)
         self.chatFrame.grid_columnconfigure(2, weight=1)
@@ -69,7 +69,7 @@ class Chatbox(ctk.CTkFrame):
         )
         self.settings_button2.grid(row=1, column=0, sticky="n",pady=3)
         #sidebar frame
-        
+        self.waveform_canvas = ctk.CTkCanvas(self.chatFrame, width=400, height=1, bg="gray30")
         #sidebar button
         self.sidebar_button = ctk.CTkButton(
             self.chatFrame,image=icon, text="", command=self.toggle_sidebar,corner_radius=0, fg_color="gray20",hover_color="gray30",width=30,height=30,bg_color="gray20"
@@ -88,6 +88,10 @@ class Chatbox(ctk.CTkFrame):
             self.chatFrame,image=add, text="",corner_radius=0, fg_color="gray20",hover_color="gray30",width=30,height=30,command=self.pick_image
         )
         self.add_button.grid(row=2, column=0, sticky="w",padx=10)
+        self.record_button = ctk.CTkButton(
+            self.chatFrame,image=record, text="",corner_radius=0, fg_color="gray20",hover_color="gray30",width=35,height=35,command=self.mic_button
+        )
+        self.record_button.grid(row=2, column=2, sticky="e",padx=10)
         self.send_button = ctk.CTkButton(
             self.text_box2,image=enter, text="",corner_radius=20, fg_color="gray10",hover_color="gray30",width=50,height=30,command=self.send_prompt
         )
@@ -160,6 +164,7 @@ class Chatbox(ctk.CTkFrame):
         return 
     def _callback(self, recognizer,audio):
         self.audio_data = audio
+
     def start_waveform(self):
         if self.waveform_running:
             return
@@ -173,7 +178,7 @@ class Chatbox(ctk.CTkFrame):
             input=True,
             frames_per_buffer=1024
         )
-
+        threading.Thread(target=self.start_waveform, daemon=True).start()
         threading.Thread(target=self._update_waveform, daemon=True).start()
 
     def stop_waveform(self):
@@ -212,30 +217,40 @@ class Chatbox(ctk.CTkFrame):
         print("Recording started")
         self.recording = True
 
-        
+        # reset buffer
+        self.audio_bytes = bytearray()
+
+        # start waveform safely
+        self.running = True
         self.start_waveform()
 
-        
-        self.audio_bytes = bytearray()
-        
+        # open mic stream ONCE
         self.stream = self.p.open(
             format=pyaudio.paInt16,
             channels=1,
-            rate=44100,
+            rate=16000,              
             input=True,
             frames_per_buffer=1024
         )
 
-        
         def record_thread():
-            while self.recording:
-                try:
-                    data = self.stream.read(1024, exception_on_overflow=False)
+            try:
+                while self.recording:
+                    data = self.stream.read(
+                        1024,
+                        exception_on_overflow=False  #  prevents crashes
+                    )
                     self.audio_bytes.extend(data)
-                except Exception as e:
-                    pass
+            except Exception as e:
+                print("Recording error:", e)
 
-        threading.Thread(target=record_thread, daemon=True).start()
+        
+        self.record_thread = threading.Thread(
+            target=record_thread,
+            daemon=True
+        )
+        self.record_thread.start()
+
 
     def stop(self):
         if not self.recording:
@@ -265,7 +280,7 @@ class Chatbox(ctk.CTkFrame):
 
         try:
             text = self.recognizer.recognize_google(self.audio_data)
-            self.textfield.insert("end", text + "\n")
+            self.after(0, lambda: self.text_box2.insert("end", text + "\n"))
             print("Recognized text:", text)
         except sr.UnknownValueError:
             print("Could not understand audio")
@@ -276,7 +291,11 @@ class Chatbox(ctk.CTkFrame):
         
         self.audio_bytes = bytearray()
 
-    
+    def mic_button(self):
+        if self.recording:
+            self.stop()
+        else:
+            self.start()
     
 
 #app = Chatbox()
