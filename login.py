@@ -40,14 +40,14 @@ class Login(ctk.CTkFrame):
         pas = CTkEntry(Login_frame,show="*",textvariable=self.password, font=("times new roman", 15),width=200,corner_radius=15)
         pas.place(x=50, y=180)
 
-        button = CTkButton(Login_frame,command=lambda :controller.show_frame("Menu"),text="Log In",text_color="white",font=("Arial Rounded MT Bold",20),cursor="hand2",corner_radius=15,width=150,height=30,hover_color="deepskyblue",fg_color="deepskyblue")
+        button = CTkButton(Login_frame,command=lambda :controller.show_frame("Chatbox"),text="Log In",text_color="white",font=("Arial Rounded MT Bold",20),cursor="hand2",corner_radius=15,width=150,height=30,hover_color="deepskyblue",fg_color="deepskyblue")
         button.place(x=75,y=230)
 
         hr = Label(Login_frame,bg="lightgray").place(x=50,y=280, width=200,height=3)
         rr = Label(Login_frame,text="OR",bg="black",fg="lightgray",font=("times new roman", 15,"bold"))
         rr.place(x=130,y=267)
 
-        forgetpass = Button(Login_frame,text="Forget Password??",font=("times new roman", 13,"bold"),bg="black",fg="gold",bd=0,activebackground="black",activeforeground="gold",command=lambda: controller.show_frame("Forget_part"))
+        forgetpass = Button(Login_frame,text="Forget Password??",font=("times new roman", 13,"bold"),bg="black",fg="gold",bd=0,activebackground="black",activeforeground="gold",command=lambda: controller.show_frame("Forget_pass"))
         forgetpass.place(x=75, y=290)
 
         # ----------------------Login Frame 2------------------------------
