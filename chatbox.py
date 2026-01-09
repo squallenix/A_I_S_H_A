@@ -1,8 +1,11 @@
+import threading
 import customtkinter as ctk
 from paths import IMAGE_PATHS
 from PIL import Image
 from ollama import chat
 from tkinter import filedialog
+import speech_recognition as sr
+import pyaudio
 class Chatbox(ctk.CTkFrame):
     def __init__(self,parent,controller):
         super().__init__(parent)
@@ -11,14 +14,28 @@ class Chatbox(ctk.CTkFrame):
             "add": ctk.CTkImage(Image.open(IMAGE_PATHS["add"]), size=(30, 29)),
             "back": ctk.CTkImage(Image.open(IMAGE_PATHS["back"]), size=(30, 29)),
             "enter": ctk.CTkImage(Image.open(IMAGE_PATHS["enter"]), size=(20, 20)),
-            
+            "record": ctk.CTkImage(Image.open(IMAGE_PATHS["record"]), size=(35, 35)),
+            "stop": ctk.CTkImage(Image.open(IMAGE_PATHS["stop"]), size=(30, 29)),
+            "back": ctk.CTkImage(Image.open(IMAGE_PATHS["back"]), size=(30, 29)),
         }
         icon=IMAGES["icon"]
         add=IMAGES["add"]
         back=IMAGES["back"]
         enter=IMAGES["enter"]
+        record=IMAGES["record"]
+        stop=IMAGES["stop"]
+        back=IMAGES["back"]
         self.image_added = None
-        
+
+        self.recognizer = sr.Recognizer()
+        self.microphone = sr.Microphone()
+        self.recording = False
+        self.audio_data = None
+        self.listening = None
+        self.running = False
+        self.stream = None
+        self.p = pyaudio.PyAudio()
+
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=0)
@@ -140,7 +157,123 @@ class Chatbox(ctk.CTkFrame):
         self.text_box1.configure(state="disabled")
         self.image_added = None
         return 
+    def _callback(self, recognizer,audio):
+        self.audio_data = audio
+    def start_waveform(self):
+        if self.waveform_running:
+            return
+
+        self.waveform_running = True
+
+        self.stream = self.p.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=44100,
+            input=True,
+            frames_per_buffer=1024
+        )
+
+        threading.Thread(target=self._update_waveform, daemon=True).start()
+
+    def stop_waveform(self):
+        self.waveform_running = False
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+            self.stream = None
+        self.waveform_canvas.delete("all")
+
+    def _update_waveform(self):
+        while self.waveform_running:
+            try:
+                data = self.stream.read(1024, exception_on_overflow=False)
+                samples = np.frombuffer(data, dtype=np.int16)
+
+                self.waveform_canvas.delete("all")
+                mid = 50
+                width = 400
+                step = len(samples) // width
+
+                for x in range(width):
+                    y = int(samples[x * step] / 32768 * mid)
+                    self.waveform_canvas.create_line(
+                        x, mid - y,
+                        x, mid + y,
+                        fill="lime"
+                    )
+            except Exception as e:
+                pass
+
+    def start(self):
+        if self.recording:
+            return
+
+        print("Recording started")
+        self.recording = True
+
         
+        self.start_waveform()
+
+        
+        self.audio_bytes = bytearray()
+        
+        self.stream = self.p.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=44100,
+            input=True,
+            frames_per_buffer=1024
+        )
+
+        
+        def record_thread():
+            while self.recording:
+                try:
+                    data = self.stream.read(1024, exception_on_overflow=False)
+                    self.audio_bytes.extend(data)
+                except Exception as e:
+                    pass
+
+        threading.Thread(target=record_thread, daemon=True).start()
+
+    def stop(self):
+        if not self.recording:
+            return
+
+        print("Recording stopped")
+        self.recording = False
+
+
+        self.stop_waveform()
+
+
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+            self.stream = None
+
+        if not self.audio_bytes:
+            print("⚠ No audio captured")
+            return
+
+        self.audio_data = sr.AudioData(
+        bytes(self.audio_bytes),
+        sample_rate=44100,
+        sample_width=self.p.get_sample_size(pyaudio.paInt16)
+        )   
+
+        try:
+            text = self.recognizer.recognize_google(self.audio_data)
+            self.textfield.insert("end", text + "\n")
+            print("Recognized text:", text)
+        except sr.UnknownValueError:
+            print("Could not understand audio")
+        except sr.RequestError as e:
+            print("API error:", e)
+        finally:
+            print("Ready for next recording")
+        
+        self.audio_bytes = bytearray()
 
     
     
