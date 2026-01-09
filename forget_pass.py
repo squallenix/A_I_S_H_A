@@ -13,10 +13,10 @@ class Forget_pass(ctk.CTkFrame):
 
         #----------------------IMAGE PART-------------------------------
 
-        self.phone_image = ImageTk.PhotoImage(file="K:\\Code\\Project\\Advanced_intelligent assistant\\Forgetpass.png")
+        self.phone_image = ImageTk.PhotoImage(file=r"E:\Code\Project\Advanced_intelligent assistant\A_I_S_H_A\images\Forgetpass1.png")
         self.lbl_img1=Label(self,image=self.phone_image,bg="Slate Gray1").place(x=0,y=160,width=520,height=500)
 
-        self.phone_image2 = ImageTk.PhotoImage(file="K:\\Code\\Project\\Advanced_intelligent assistant\\Forgetpass2.png")
+        self.phone_image2 = ImageTk.PhotoImage(file=r"E:\Code\Project\Advanced_intelligent assistant\A_I_S_H_A\images\Forgetpass2.png")
         self.lbl_img2 = Label(self, image=self.phone_image2, bg="Slate Gray1").place(x=800, y=160, width=450,height=500)
 
 

@@ -10,7 +10,7 @@ class Change_pass(ctk.CTkFrame):
 
         #----------------------IMAGE PART-------------------------------
 
-        self.phone_image = ImageTk.PhotoImage(file="K:\\Code\\Project\\Advanced_intelligent assistant\\change_pass2.png")
+        self.phone_image = ImageTk.PhotoImage(file=r"E:\Code\Project\Advanced_intelligent assistant\A_I_S_H_A\images\change_pass.png")
         self.lbl_img1=Label(self,image=self.phone_image,bg='#333333',bd=0).place(x=90,y=60,width=750,height=500)
 
 

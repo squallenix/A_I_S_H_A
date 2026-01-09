@@ -25,7 +25,7 @@ class MainApp(ctk.CTk):
         container.grid_columnconfigure(0, weight=1)
         
         self.frames = {}
-        for F in (Login,Chatbox,Menu,Voice,Signup):
+        for F in (Login,Chatbox,Menu,Voice,Signup,Forget_pass,Otp,Change_pass):
             page_name = F.__name__
             frame = F(container, self)
             self.frames[page_name] = frame
