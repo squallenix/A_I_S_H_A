@@ -32,9 +32,8 @@ class Chatbox(ctk.CTkFrame):
         self.microphone = sr.Microphone()
         self.recording = False
         self.audio_data = None
-        self.listening = None
-        self.running = False
-        self.stream = None
+        self.record_stream = None
+        self.wave_stream = None 
         self.p = pyaudio.PyAudio()
         self.waveform_running = False
         self.grid_columnconfigure(0, weight=0)
@@ -69,7 +68,8 @@ class Chatbox(ctk.CTkFrame):
         )
         self.settings_button2.grid(row=1, column=0, sticky="n",pady=3)
         #sidebar frame
-        self.waveform_canvas = ctk.CTkCanvas(self.chatFrame, width=400, height=1, bg="gray30")
+        self.waveform_canvas = ctk.CTkCanvas(self.chatFrame, width=40, height=50, bg="gray30")
+        self.waveform_canvas.grid(row=1, column=2, sticky="se",padx=5)
         #sidebar button
         self.sidebar_button = ctk.CTkButton(
             self.chatFrame,image=icon, text="", command=self.toggle_sidebar,corner_radius=0, fg_color="gray20",hover_color="gray30",width=30,height=30,bg_color="gray20"
@@ -162,51 +162,55 @@ class Chatbox(ctk.CTkFrame):
         self.text_box1.configure(state="disabled")
         self.image_added = None
         return 
-    def _callback(self, recognizer,audio):
-        self.audio_data = audio
-
+    
     def start_waveform(self):
-        if self.waveform_running:
+        if self.waveform_running or self.record_stream:
             return
 
         self.waveform_running = True
 
-        self.stream = self.p.open(
+        self.wave_stream = self.p.open(
             format=pyaudio.paInt16,
             channels=1,
-            rate=44100,
+            rate=16000,
             input=True,
             frames_per_buffer=1024
         )
-        threading.Thread(target=self.start_waveform, daemon=True).start()
+        
         threading.Thread(target=self._update_waveform, daemon=True).start()
 
     def stop_waveform(self):
         self.waveform_running = False
-        if self.stream:
-            self.stream.stop_stream()
-            self.stream.close()
-            self.stream = None
+
+        if self.wave_stream:
+            self.wave_stream.stop_stream()
+            self.wave_stream.close()
+            self.wave_stream = None
+
         self.waveform_canvas.delete("all")
 
+    def _draw_waveform(self, samples):
+        self.waveform_canvas.delete("all")
+
+        mid = 25
+        width = 40
+        step = max(1, len(samples) // width)
+
+        for x in range(width):
+            y = int(samples[x * step] / 32768 * mid)
+            self.waveform_canvas.create_line(
+                x, mid - y,
+                x, mid + y,
+                fill="lime"
+            )
     def _update_waveform(self):
         while self.waveform_running:
             try:
-                data = self.stream.read(1024, exception_on_overflow=False)
+                data = self.wave_stream.read(1024, exception_on_overflow=False)
                 samples = np.frombuffer(data, dtype=np.int16)
 
-                self.waveform_canvas.delete("all")
-                mid = 50
-                width = 400
-                step = len(samples) // width
+                self.after(0, lambda s=samples: self._draw_waveform(s))
 
-                for x in range(width):
-                    y = int(samples[x * step] / 32768 * mid)
-                    self.waveform_canvas.create_line(
-                        x, mid - y,
-                        x, mid + y,
-                        fill="lime"
-                    )
             except Exception as e:
                 pass
 
@@ -220,12 +224,12 @@ class Chatbox(ctk.CTkFrame):
         # reset buffer
         self.audio_bytes = bytearray()
 
-        # start waveform safely
+        
         self.running = True
         self.start_waveform()
 
         # open mic stream ONCE
-        self.stream = self.p.open(
+        self.record_stream = self.p.open(
             format=pyaudio.paInt16,
             channels=1,
             rate=16000,              
@@ -236,10 +240,10 @@ class Chatbox(ctk.CTkFrame):
         def record_thread():
             try:
                 while self.recording:
-                    data = self.stream.read(
-                        1024,
-                        exception_on_overflow=False  #  prevents crashes
-                    )
+                    data = self.record_stream.read(
+                    1024,
+                    exception_on_overflow=False
+                )
                     self.audio_bytes.extend(data)
             except Exception as e:
                 print("Recording error:", e)
@@ -258,38 +262,37 @@ class Chatbox(ctk.CTkFrame):
 
         print("Recording stopped")
         self.recording = False
-
-
         self.stop_waveform()
 
 
-        if self.stream:
-            self.stream.stop_stream()
-            self.stream.close()
-            self.stream = None
-
+        if self.record_stream:
+            self.record_stream.stop_stream()
+            self.record_stream.close()
+            self.record_stream = None
+        
         if not self.audio_bytes:
             print("⚠ No audio captured")
             return
 
         self.audio_data = sr.AudioData(
         bytes(self.audio_bytes),
-        sample_rate=44100,
+        sample_rate=16000,
         sample_width=self.p.get_sample_size(pyaudio.paInt16)
         )   
 
-        try:
-            text = self.recognizer.recognize_google(self.audio_data)
-            self.after(0, lambda: self.text_box2.insert("end", text + "\n"))
-            print("Recognized text:", text)
-        except sr.UnknownValueError:
-            print("Could not understand audio")
-        except sr.RequestError as e:
-            print("API error:", e)
-        finally:
-            print("Ready for next recording")
-        
-        self.audio_bytes = bytearray()
+        def recognize():
+            if not self.audio_data.frame_data:
+                return
+            try:
+                text = self.recognizer.recognize_google(self.audio_data)
+                self.after(0, lambda: self.text_box2.insert("end", text + "\n"))
+            except sr.UnknownValueError:
+                print("Could not understand audio")
+            except sr.RequestError as e:
+                print("API error:", e)
+
+        threading.Thread(target=recognize, daemon=True).start()
+
 
     def mic_button(self):
         if self.recording:
