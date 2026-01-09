@@ -6,6 +6,9 @@ from chatbox import Chatbox
 from menu import Menu
 from voice import Voice
 from signup import Signup
+from forget_pass import Forget_pass
+from otp import Otp
+from change_password import Change_pass
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
