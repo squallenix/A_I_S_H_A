@@ -1,15 +1,18 @@
+
 from paths import IMAGE_PATHS
 from tkinter import *
+import tkinter as tk
 from tkinter import Label
 from tkinter import messagebox
 from PIL import Image,ImageTk
 from customtkinter import *
 import customtkinter as ctk
-
+from auth_service import AuthService
 class Login(ctk.CTkFrame):
     def __init__(self,parent, controller):
         super().__init__(parent)
-
+        self.email = tk.StringVar()
+        self.password = tk.StringVar()
         
         IMAGES = {k: ImageTk.PhotoImage(Image.open(v)) for k, v in IMAGE_PATHS.items()}
         #----------------------IMAGE PART-------------------------------
@@ -26,21 +29,19 @@ class Login(ctk.CTkFrame):
         tittle = CTkLabel(Login_frame,text="Login",text_color='white',font=("Comic Sans MS",40,"bold"),fg_color="black")
         tittle.place(x=0,y=20,relwidth=1)
 
-        username= CTkLabel(Login_frame,text="Username",text_color='white', font=("Andalus",15),fg_color="black")
+        username= CTkLabel(Login_frame,text="Email",text_color='white', font=("Andalus",15),fg_color="black")
         username.place(x=50,y=80)
-        self.username = StringVar()
 
-        user = CTkEntry(Login_frame,textvariable=self.username,font=("times new roman",15),width=200,corner_radius=15)
+        user = CTkEntry(Login_frame,textvariable=self.email,font=("times new roman",15),width=200,corner_radius=15)
         user.place(x=50,y=110)
 
         password = CTkLabel(Login_frame, text="Password",text_color='white', font=("Andalus",15), fg_color="black")
         password.place(x=50, y=150)
-        self.password = StringVar()
 
         pas = CTkEntry(Login_frame,show="*",textvariable=self.password, font=("times new roman", 15),width=200,corner_radius=15)
         pas.place(x=50, y=180)
 
-        button = CTkButton(Login_frame,command=lambda :controller.show_frame("Chatbox"),text="Log In",text_color="white",font=("Arial Rounded MT Bold",20),cursor="hand2",corner_radius=15,width=150,height=30,hover_color="deepskyblue",fg_color="deepskyblue")
+        button = CTkButton(Login_frame,command=lambda: self.login(controller),text="Log In",text_color="white",font=("Arial Rounded MT Bold",20),cursor="hand2",corner_radius=15,width=150,height=30,hover_color="deepskyblue",fg_color="deepskyblue")
         button.place(x=75,y=230)
 
         hr = Label(Login_frame,bg="lightgray").place(x=50,y=280, width=200,height=3)
@@ -85,14 +86,15 @@ class Login(ctk.CTkFrame):
 
        #----------------------Login function part----------------------
 
-    def login(self):
-        uname = "Quaium"
-        pw = "8541"
+    def login(self,controller):
 
-        if self.username.get() == uname and self.password.get() == pw:
+        if AuthService.is_logined(self.email.get(), self.password.get()):
             messagebox.showinfo(title="Login Success", message="You Successfully Logged in")
+            controller.show_frame("Chatbox")
+            self.email.set("")
+            self.password.set("")
         else:
-            messagebox.showinfo(title="Invalid Login", message="Please try again")
+            messagebox.showerror("Login Failed", "Invalid email or password")
 
 
 

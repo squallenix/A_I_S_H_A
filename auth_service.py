@@ -1,3 +1,4 @@
+from tkinter import messagebox
 from sql_repo import SQLRepository
 
 
@@ -7,7 +8,7 @@ class AuthService:
     def is_logined(email, password):
         results = SQLRepository.fetch_data(email)
         
-        if results is None:
+        if not results:
             return False
         
         return results["password"] == password

@@ -50,7 +50,7 @@ class Chatbox(ctk.CTkFrame):
         self.chatFrame.grid_columnconfigure(1, weight=1)
         self.chatFrame.grid_columnconfigure(2, weight=1)
         self.back_button = ctk.CTkButton(
-            self.chatFrame, image= back, text="", corner_radius=0, fg_color="gray20",hover_color="gray30",width=50,height=30,command=lambda: controller.show_frame("Menu"))
+            self.chatFrame, image= back, text="", corner_radius=0, fg_color="gray20",hover_color="gray30",width=50,height=30,command=lambda: controller.show_frame("Login"))
         self.back_button.grid(row=0, column=2, sticky="ne",padx=10,pady=10)
         #chat frame
         #sidebar frame

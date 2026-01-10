@@ -5,11 +5,18 @@ from tkinter import messagebox
 from PIL import Image,ImageTk
 import customtkinter as ctk
 
+import sql_repo
+
 class Signup(ctk.CTkFrame):
    def __init__(self, parent, controller):
       super().__init__(parent)
       self.check=tk.BooleanVar()
-         
+      self.username = tk.StringVar()
+      self.email = tk.StringVar()
+      self.gender = tk.StringVar()
+      self.password = tk.StringVar()
+      self.confirm_password = tk.StringVar()
+      self.date_of_birth = tk.StringVar()
       #----------------------IMAGE PART-------------------------------
 
       self.phone_image = ImageTk.PhotoImage(file=r"E:\Code\Project\Advanced_intelligent assistant\A_I_S_H_A\images\pcpic.png")
@@ -24,28 +31,28 @@ class Signup(ctk.CTkFrame):
       titel = Label(signupFrame,text="CREATE AN ACCOUNT",font=("Comic Sans MS",20,"bold"),bg="black",fg="white").place(x=0,y=40,relwidth=1)
 
       username= Label(signupFrame,text="Username", font=("Andalus,15"),bg="black",fg="white").place(x=50,y=110)
-      self.username = StringVar()
+      
       user = Entry(signupFrame,textvariable=self.username,font=("times new roman",15),bg="#ECECEC").place(x=50,y=140)
 
       mail = Label(signupFrame, text="Email Address", font=("Andalus,15"), bg="black", fg="white").place(x=50, y=170)
-      self.mail = StringVar()
-      email = Entry(signupFrame, textvariable=self.mail, font=("times new roman", 15), bg="#ECECEC").place(x=50,y=200)
+      
+      email = Entry(signupFrame, textvariable=self.email, font=("times new roman", 15), bg="#ECECEC").place(x=50,y=200)
 
       Birthday = Label(signupFrame, text="Date of birth", font=("Andalus,15"), bg="black", fg="white").place(x=50, y=230)
-      self.Birthday = StringVar()
-      birthday = Entry(signupFrame, textvariable=self.Birthday, font=("times new roman", 15), bg="#ECECEC").place(x=50,y=260)
+
+      birthday = Entry(signupFrame, textvariable=self.date_of_birth, font=("times new roman", 15), bg="#ECECEC").place(x=50,y=260)
 
       Gender = Label(signupFrame, text="Gender", font=("Andalus,15"), bg="black", fg="white").place(x=340, y=110)
-      self.Gender = StringVar()
-      gen = Entry(signupFrame,textvariable=self.Gender, font=("times new roman", 15), bg="#ECECEC").place(x=340, y=140)
+
+      gen = Entry(signupFrame,textvariable=self.gender, font=("times new roman", 15), bg="#ECECEC").place(x=340, y=140)
 
       password = Label(signupFrame, text="Password", font=("Andalus,15"), bg="black", fg="white").place(x=340,y=170)
-      self.password = StringVar()
+
       pas = Entry(signupFrame, textvariable=self.password, font=("times new roman", 15),bg="#ECECEC").place(x=340, y=200)
 
       Comfirm_password = Label(signupFrame, text="Confirm Password", font=("Andalus,15"), bg="black", fg="white").place(x=340,y=230)
-      self.Confirm_password = StringVar()
-      Cpas = Entry(signupFrame, textvariable=self.Confirm_password, font=("times new roman", 15),bg="#ECECEC").place(x=340, y=260)
+      
+      Cpas = Entry(signupFrame, textvariable=self.confirm_password, font=("times new roman", 15),bg="#ECECEC").place(x=340, y=260)
 
       Checkbutton(
       signupFrame,
@@ -76,12 +83,21 @@ class Signup(ctk.CTkFrame):
                "You must agree to the Terms & Conditions"
          )
          return
-
+      if not sql_repo.SQLRepository.fetch_data( self.email.get())is None:
+         messagebox.showerror(
+               "Error",
+               "Email already exists"
+         )
+         return
+      if self.password.get() != self.confirm_password.get():
+         messagebox.showerror(
+               "Error",
+               "Passwords do not match"
+         )
+         return
+      sql_repo.SQLRepository.insert_data( self.username.get(), self.email.get(), self.date_of_birth.get(), self.gender.get(), self.password.get())
+      messagebox.showinfo(
+               "Success",
+               "Account created successfully"
+         )
       controller.show_frame("Login")
-
-         #-----------------------using gif animation-----------------
-
-
-
-
-
